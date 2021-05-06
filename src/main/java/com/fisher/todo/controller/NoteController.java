@@ -16,15 +16,15 @@ public class NoteController {
     private ArrayList<Map<String, String>> notes = new ArrayList<>() {{
         add(new HashMap<>() {{
             put("id", "1");
-            put("note", "first note");
+            put("text", "first note");
         }});
         add(new HashMap<>() {{
             put("id", "2");
-            put("note", "second note");
+            put("text", "second note");
         }});
         add(new HashMap<>() {{
             put("id", "3");
-            put("note", "third note");
+            put("text", "third note");
         }});
     }};
 
