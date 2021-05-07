@@ -1,69 +1,50 @@
 package com.fisher.todo.controller;
 
-import com.fisher.todo.exceptions.NotFoundException;
+import com.fisher.todo.domain.Note;
+import com.fisher.todo.repository.NoteRepository;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("notes")
 public class NoteController {
-    private int counter = 4;
 
-    private ArrayList<Map<String, String>> notes = new ArrayList<>() {{
-        add(new HashMap<>() {{
-            put("id", "1");
-            put("text", "first note");
-        }});
-        add(new HashMap<>() {{
-            put("id", "2");
-            put("text", "second note");
-        }});
-        add(new HashMap<>() {{
-            put("id", "3");
-            put("text", "third note");
-        }});
-    }};
+    private final NoteRepository noteRepo;
 
-    @GetMapping
-    public List<Map<String, String>> list() {
-        return notes;
+    @Autowired
+    public NoteController(NoteRepository noteRepo) {
+        this.noteRepo = noteRepo;
     }
 
-    private Map<String, String> findNote(String id) {
-        return notes.stream()
-                .filter(note -> note.get("id").equals(id))
-                .findFirst()
-                .orElseThrow(NotFoundException::new);
+    @GetMapping
+    public List<Note> list() {
+        return noteRepo.findAll();
     }
 
     @GetMapping("{id}")
-    public Map<String, String> getNote(@PathVariable String id) {
-        return findNote(id);
-    }
-
-    @PostMapping
-    public Map<String, String> addNote(@RequestBody Map<String, String> note) {
-        note.put("id", String.valueOf(counter++));
-        notes.add(note);
+    public Note getNote(@PathVariable("id") Note note) {
         return note;
     }
 
+    @PostMapping
+    public Note addNote(@RequestBody Note note) {
+        note.setCreationDate(LocalDateTime.now());
+        return noteRepo.save(note);
+    }
+
     @PutMapping("{id}")
-    public Map<String, String> updateNote(@PathVariable String id,
-                                          @RequestBody Map<String, String> note) {
-        Map<String, String> noteFromDb = findNote(id);
-        noteFromDb.putAll(note);
-        noteFromDb.put("id", id);
-        return noteFromDb;
+    public Note updateNote(@PathVariable("id") Note noteFromDb,
+                                          @RequestBody  Note note) {
+        BeanUtils.copyProperties(note, noteFromDb, "id");
+        return noteRepo.save(noteFromDb);
     }
 
     @DeleteMapping("{id}")
-    public void deleteDote(@PathVariable String id) {
-        Map<String, String> note = findNote(id);
-        notes.remove(note);
+    public void deleteDote(@PathVariable("id") Note note) {
+        noteRepo.delete(note);
     }
 }
